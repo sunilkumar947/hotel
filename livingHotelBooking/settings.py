@@ -151,7 +151,3 @@ LOGOUT_REDIRECT_URL = '/'
 
 
 #this is because csrf forbidden 403 error
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://47fa-2405-201-5c21-2023-e852-5522-c40e-49ef.ngrok-free.app',  # Your Ngrok URL
-#     'https://127.0.0.1',
-# ]
