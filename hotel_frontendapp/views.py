@@ -9,8 +9,18 @@ from django.shortcuts import render
 from .models import HotelRoomType, Rooms
 from django.http import JsonResponse
 from django.views.generic import ListView
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 # 
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView
+from django.shortcuts import render, redirect
+from datetime import datetime
+from .models import Rooms, HotelRoomType,BookingRoom
+
+@method_decorator(login_required, name='dispatch')
 class HomeView(ListView):
     model = Rooms
     template_name = "home.html"
@@ -19,63 +29,79 @@ class HomeView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         room_type = self.request.GET.get("room_type")
-          # Get filter from query params
         if room_type:
             queryset = queryset.filter(room_type__room_type=room_type)
-            print(queryset)  # Assuming room_type has a name field
         return queryset
-        
-    
-
 
     def post(self, request, *args, **kwargs):
         room_types = HotelRoomType.objects.all()
-        room_type = request.POST.get('room_type')
+        room_type_name = request.POST.get('room_type')
         check_in_date_str = request.POST.get('check_in_date')
         check_out_date_str = request.POST.get('check_out_date')
+        check_in_time_str = request.POST.get('check_in_time')
+        check_out_time_str = request.POST.get('check_out_time')
         guests = int(request.POST.get('guests', 0))
         rooms = int(request.POST.get('rooms', 0))
+        is_hourly = request.POST.get('is_hourly') == 'on'
 
-        selected_room = Rooms.objects.filter(room_type__room_type=room_type).first()
+        selected_room = Rooms.objects.filter(room_type__room_type=room_type_name).first()
+        total_cost = 0
 
-        # Check if dates are provided
-        if check_in_date_str and check_out_date_str:
-            try:
-                # Convert date strings into datetime objects
-                check_in_date = datetime.strptime(check_in_date_str, "%Y-%m-%d")
-                check_out_date = datetime.strptime(check_out_date_str, "%Y-%m-%d")
-                
-                # Calculate the number of days between check-in and check-out
-                days = (check_out_date - check_in_date).days
-            except ValueError:
-                # If date parsing fails, handle the exception (e.g., invalid date format)
-                days = 0
-        else:
-            days = 0
+        if not selected_room:
+            return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid room selection'})
 
-        if selected_room and days > 0:
-            # Calculate the price and other fees
-            room_rate = selected_room.room_rate
-            cleaning_fees = selected_room.clining_fees
-            room_service_fee = selected_room.room_service_fee
+        try:
+            check_in_date = datetime.strptime(check_in_date_str, "%Y-%m-%d").date()
+            check_out_date = datetime.strptime(check_out_date_str, "%Y-%m-%d").date()
+            check_in_time = datetime.strptime(check_in_time_str, "%H:%M").time()
+            check_out_time = datetime.strptime(check_out_time_str, "%H:%M").time()
 
-            # Calculate total room cost
-            total_room_cost = room_rate * rooms * days
-            total_before_taxes = total_room_cost + cleaning_fees + room_service_fee
+            # Ensure valid date range
+            if check_out_date < check_in_date or (check_out_date == check_in_date and check_out_time <= check_in_time):
+                return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid check-in/check-out time'})
 
-            # Prepare context for rendering
-            context = {
-                'room_types': room_types,
-                'selected_room': selected_room,
-                'total_room_cost': total_room_cost,
-                'total_before_taxes': total_before_taxes,
-                'days': days
-            }
-        else:
-            context = {'room_types': room_types}
+            # Calculate total cost
+            if is_hourly:
+                check_in = datetime.combine(check_in_date, check_in_time)
+                check_out = datetime.combine(check_out_date, check_out_time)
+                duration_in_hours = (check_out - check_in).total_seconds() / 3600
+                if duration_in_hours <= 0:
+                    duration_in_hours = 1  # Minimum 1-hour charge
+                base_cost = rooms * selected_room.hrs_rate * duration_in_hours
+            else:
+                num_days = (check_out_date - check_in_date).days
+                if num_days <= 0:
+                    num_days = 1  # Minimum 1-day charge
+                base_cost = rooms * selected_room.room_rate * num_days
+
+            gst_rate = selected_room.gst / 100  # Convert percentage to decimal
+            gst_amount = base_cost * gst_rate
+            total_cost = base_cost + gst_amount
+
+        except ValueError:
+            return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid date/time format'})
+
+        # Save booking
+        booking = BookingRoom.objects.create(
+            user=request.user,
+            room=selected_room,
+            check_in_date=check_in_date,
+            check_out_date=check_out_date,
+            check_in_time=check_in_time,
+            check_out_time=check_out_time,
+            guests=guests,
+            rooms=rooms,
+            is_hourly=is_hourly,
+            total_cost=total_cost
+        )
+
+        context = {
+            'room_types': room_types,
+            'selected_room': selected_room,
+            'total_cost': total_cost
+        }
 
         return render(request, 'home.html', context)
-
 
 
 

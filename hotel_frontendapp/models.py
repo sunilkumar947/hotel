@@ -3,6 +3,12 @@ import datetime
 from django.db import models
 from datetime import datetime
 from hotel_adminapp.models import User,Rooms,HotelRoomType
+
+
+
+
+
+
 # Create your models here.
 class BookingRoom(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

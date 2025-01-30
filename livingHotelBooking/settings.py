@@ -145,9 +145,32 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_URL=''
 LOGOUT_URL = ''
-LOGIN_REDIRECT_URL = '/dashboard/'  # Replace with your actual dashboard URL
+LOGIN_REDIRECT_URL = 'home'  # Replace with your actual dashboard URL
 LOGOUT_REDIRECT_URL = '/'
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google" :{
+        "APP":{
+            "client_id":'677908652452-0dahinjmskfj4m609uia6gn98i1dgp98.apps.googleusercontent.com',
+            "secret":'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',
+            "key":''
+        }
+    },
 
+    # 'apple': {
+    #     'APP': {
+    #         'client_id': 'com.roomserv.appleelogin',
+    #         'secret': '',
+    #     },
+    #     'AUTH_PARAMS': {
+    #         'scope': 'name email',
+    #     },
+    #     'REDIRECT_URI': 'https://47fa-2405-201-5c21-2023-e852-5522-c40e-49ef.ngrok-free.app/accounts/apple/login/callback/',
+    # },
+}
 
 #this is because csrf forbidden 403 error
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://47fa-2405-201-5c21-2023-e852-5522-c40e-49ef.ngrok-free.app',  # Your Ngrok URL
+#     'https://127.0.0.1',
+# ]

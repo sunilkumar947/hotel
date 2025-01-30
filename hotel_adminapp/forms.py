@@ -2,6 +2,12 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, ProfileSetup, Rooms
 
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import get_user_model , authenticate
+
+User = get_user_model()
+
+
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
 

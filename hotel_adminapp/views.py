@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login , logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import render, redirect
@@ -9,6 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import FormView
 from .forms import RegistrationForm, LoginForm,ProfileSetupForm
 from .models import User,ProfileSetup, Rooms
+from django.contrib import messages
 
 
 class RegisterView(FormView):
@@ -36,23 +37,27 @@ class LoginView(View):
             if user:
                 login(request, user)
                 update_last_login(None, user)  # Update the last login timestamp
-
-                # Check user role and redirect accordingly
-            #     if user.role == 'admin':
-            #         return redirect("admin-dashboard")  # Replace with your admin dashboard URL name
-            #     elif user.role == 'front-desk':
-            #         return redirect("frontdesk-dashboard")  # Replace with your front desk dashboard URL name
-            #     elif user.role == 'guest':
-            #         return redirect("guest-dashboard")  # Replace with your guest dashboard URL name
-            #     else:
-            #         return redirect("dashboard")  # Default redirection if role doesn't match
-            # else:
-            #     form.add_error(None, "Invalid username or password")
+                messages.success(request, "Login successful!")
+                return redirect('home')
+            else:
+                messages.error(request, "Invalid username or password.")  # Add this line
         return render(request, self.template_name, {"form": form})
+
+
+# class HomeView(TemplateView):
+#     template_name = "home.html"
+   
+class LogoutView(View):
+    def get(self, request, *args, **kwargs):
+        logout(request)  # Logs out the user
+        return redirect('login')
+
+
+    
     
 class DashboardView(LoginRequiredMixin,TemplateView):
     template_name = 'dashboard.html'
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -95,6 +100,9 @@ class ProfileUpdateView(LoginRequiredMixin, View):
         return render(request, "profileSetup.html", {"form": form})
 
 
+
+
+
 #------Get Room by service---------
 class RoomListView(ListView):
     model = Rooms
@@ -107,3 +115,18 @@ class RoomListView(ListView):
         if room_type:
             queryset = queryset.filter(room_type__room_type=room_type)  # Assuming room_type has a name field
         return queryset
+    
+    
+    
+    
+      # Check user role and redirect accordingly
+            #     if user.role == 'admin':
+            #         return redirect("admin-dashboard")  # Replace with your admin dashboard URL name
+            #     elif user.role == 'front-desk':
+            #         return redirect("frontdesk-dashboard")  # Replace with your front desk dashboard URL name
+            #     elif user.role == 'guest':
+            #         return redirect("guest-dashboard")  # Replace with your guest dashboard URL name
+            #     else:
+            #         return redirect("dashboard")  # Default redirection if role doesn't match
+            # else:
+            #     form.add_error(None, "Invalid username or password")
