@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Room Selection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h3 class="text-center">Select Your Room Type</h3>
+                    <form method="GET" id="room-filter-form">
+                        <!-- Room Type Filter Form -->
+                        <div class="mb-3">
+                            <label for="room_type" class="form-label">Select Room Type</label>
+                            <select name="room_type" id="room_type" class="form-select" required>
+                                <option value="">All</option>
+                                <option value="Premium" {% if request.GET.room_type == 'Premium' %}selected{% endif %}>Premium</option>
+                                <option value="Executive" {% if request.GET.room_type == 'Executive' %}selected{% endif %}>Executive</option>
+                                <option value="Luxury" {% if request.GET.room_type == 'Luxury' %}selected{% endif %}>Luxury</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">Filter</button>
+                    </form>
+
+                    <!-- Display Rooms -->
+                    {% if rooms %}
+                    <ul class="list-group mt-4">
+                        {% for room in rooms %}
+                        <li class="list-group-item">
+                            <h4>{{ room.room_type.name }}</h4>
+                            <p>Property Type: {{ room.property_type }}</p>
+                            <p>Rate: ₹{{ room.room_rate }}</p>
+                            <p>Cleaning Fee: ₹{{ room.clining_fees }}</p>
+                            <p>Room Service Fee: ₹{{ room.room_service_fee }}</p>
+                            <p>Taxes: ₹{{ room.gst }}</p>
+                            <img src="{{ room.room_img.url }}" width="200" class="img-fluid" alt="Room Image">
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No rooms available for the selected room type.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

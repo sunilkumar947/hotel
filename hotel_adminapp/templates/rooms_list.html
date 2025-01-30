@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Room List</title>
+</head>
+<body>
+    <h2>Available Rooms</h2>
+
+    <!-- Room Type Filter Form -->
+    <form method="GET">
+        <label for="room_type">Select Room Type:</label>
+        <select name="room_type" id="room_type">
+            <option value="">All</option>
+            <option value="Premium">Premium</option>
+            <option value="Executive">Executive</option>
+            <option value="Luxury">Luxury</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <ul>
+        {% for room in rooms %}
+            <li>
+                <h3>{{ room.room_type.name }}</h3>
+                <p>Property Type: {{ room.property_type }}</p>
+                <p>Rate: ${{ room.room_rate }}</p>
+                <p>Check-in: {{ room.check_in }}</p>
+                <p>Check-out: {{ room.check_out }}</p>
+                <img src="{{ room.room_img.url }}" width="200">
+            </li>
+        {% empty %}
+            <li>No rooms available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

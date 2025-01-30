@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            padding-top: 20px;
+            width: 250px;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h5 class="text-center text-white">Settings</h5>
+        <div class="list-group">
+            {% for menu in menu_list %}
+                <a href="{{ menu.url }}" class="list-group-item list-group-item-action bg-dark text-white">
+                    {{ menu.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="content">
+        <h2 class="mb-4">Admin Settings</h2>
+        <p>Welcome to the admin settings page. Please select an option from the sidebar menu.</p>
+        <!-- Additional content for each menu option can be added dynamically -->
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
