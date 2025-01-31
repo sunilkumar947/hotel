@@ -12,14 +12,6 @@ from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 # 
-
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.views.generic import ListView
-from django.shortcuts import render, redirect
-from datetime import datetime
-from .models import Rooms, HotelRoomType,BookingRoom
-
 @method_decorator(login_required, name='dispatch')
 class HomeView(ListView):
     model = Rooms
@@ -29,79 +21,62 @@ class HomeView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         room_type = self.request.GET.get("room_type")
+          # Get filter from query params
         if room_type:
             queryset = queryset.filter(room_type__room_type=room_type)
+            print(queryset)  # Assuming room_type has a name field
         return queryset
+        
+    
 
     def post(self, request, *args, **kwargs):
         room_types = HotelRoomType.objects.all()
-        room_type_name = request.POST.get('room_type')
+        room_type = request.POST.get('room_type')
         check_in_date_str = request.POST.get('check_in_date')
         check_out_date_str = request.POST.get('check_out_date')
-        check_in_time_str = request.POST.get('check_in_time')
-        check_out_time_str = request.POST.get('check_out_time')
         guests = int(request.POST.get('guests', 0))
         rooms = int(request.POST.get('rooms', 0))
-        is_hourly = request.POST.get('is_hourly') == 'on'
 
-        selected_room = Rooms.objects.filter(room_type__room_type=room_type_name).first()
-        total_cost = 0
+        selected_room = Rooms.objects.filter(room_type__room_type=room_type).first()
 
-        if not selected_room:
-            return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid room selection'})
+        # Check if dates are provided
+        if check_in_date_str and check_out_date_str:
+            try:
+                # Convert date strings into datetime objects
+                check_in_date = datetime.strptime(check_in_date_str, "%Y-%m-%d")
+                check_out_date = datetime.strptime(check_out_date_str, "%Y-%m-%d")
+                
+                # Calculate the number of days between check-in and check-out
+                days = (check_out_date - check_in_date).days
+            except ValueError:
+                # If date parsing fails, handle the exception (e.g., invalid date format)
+                days = 0
+        else:
+            days = 0
 
-        try:
-            check_in_date = datetime.strptime(check_in_date_str, "%Y-%m-%d").date()
-            check_out_date = datetime.strptime(check_out_date_str, "%Y-%m-%d").date()
-            check_in_time = datetime.strptime(check_in_time_str, "%H:%M").time()
-            check_out_time = datetime.strptime(check_out_time_str, "%H:%M").time()
+        if selected_room and days > 0:
+            # Calculate the price and other fees
+            room_rate = selected_room.room_rate
+            cleaning_fees = selected_room.clining_fees
+            room_service_fee = selected_room.room_service_fee
 
-            # Ensure valid date range
-            if check_out_date < check_in_date or (check_out_date == check_in_date and check_out_time <= check_in_time):
-                return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid check-in/check-out time'})
+            # Calculate total room cost
+            total_room_cost = room_rate * rooms * days
+            total_before_taxes = total_room_cost + cleaning_fees + room_service_fee
 
-            # Calculate total cost
-            if is_hourly:
-                check_in = datetime.combine(check_in_date, check_in_time)
-                check_out = datetime.combine(check_out_date, check_out_time)
-                duration_in_hours = (check_out - check_in).total_seconds() / 3600
-                if duration_in_hours <= 0:
-                    duration_in_hours = 1  # Minimum 1-hour charge
-                base_cost = rooms * selected_room.hrs_rate * duration_in_hours
-            else:
-                num_days = (check_out_date - check_in_date).days
-                if num_days <= 0:
-                    num_days = 1  # Minimum 1-day charge
-                base_cost = rooms * selected_room.room_rate * num_days
-
-            gst_rate = selected_room.gst / 100  # Convert percentage to decimal
-            gst_amount = base_cost * gst_rate
-            total_cost = base_cost + gst_amount
-
-        except ValueError:
-            return render(request, 'home.html', {'room_types': room_types, 'error': 'Invalid date/time format'})
-
-        # Save booking
-        booking = BookingRoom.objects.create(
-            user=request.user,
-            room=selected_room,
-            check_in_date=check_in_date,
-            check_out_date=check_out_date,
-            check_in_time=check_in_time,
-            check_out_time=check_out_time,
-            guests=guests,
-            rooms=rooms,
-            is_hourly=is_hourly,
-            total_cost=total_cost
-        )
-
-        context = {
-            'room_types': room_types,
-            'selected_room': selected_room,
-            'total_cost': total_cost
-        }
+            # Prepare context for rendering
+            context = {
+                'room_types': room_types,
+                'selected_room': selected_room,
+                'total_room_cost': total_room_cost,
+                'total_before_taxes': total_before_taxes,
+                'days': days
+            }
+        else:
+            context = {'room_types': room_types}
 
         return render(request, 'home.html', context)
+
 
 
 
@@ -139,4 +114,67 @@ class CalculateTotalCostView(View):
         return JsonResponse({"error": "Invalid request"}, status=400)
 
 
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .models import BookingRoom, Rooms
+from hotel_adminapp.models import User
 
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .models import BookingRoom, Rooms
+from django.contrib.auth.decorators import login_required
+from datetime import datetime
+
+from django.shortcuts import redirect
+from django.views.generic import CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import BookingRoom, Rooms
+from django.urls import reverse_lazy
+from datetime import datetime
+
+class ConfirmBookingView(LoginRequiredMixin, CreateView):
+    model = BookingRoom
+    fields = ['room', 'check_in_date', 'check_out_date', 'check_in_time', 'check_out_time', 'guests', 'rooms', 'total_cost']
+    template_name = 'home.html'  # Replace with your actual template name
+
+    def form_valid(self, form):
+        # Get form data
+        room = self.request.POST.get('room_type')
+
+        check_in_date = self.request.POST.get('check_in_date')
+        check_out_date = self.request.POST.get('check_out_date')
+
+        check_in_hour = int(self.request.POST.get('check_in_hour'))
+        check_in_minute = int(self.request.POST.get('check_in_minute'))
+        check_in_period = self.request.POST.get('check_in_period')
+
+        check_out_hour = int(self.request.POST.get('check_out_hour'))
+        check_out_minute = int(self.request.POST.get('check_out_minute'))
+        check_out_period = self.request.POST.get('check_out_period')
+
+        guests = int(self.request.POST.get('guests'))
+        rooms = int(self.request.POST.get('rooms'))
+        total_cost = self.request.POST.get('total-cost')
+
+        # Convert times to 24-hour format
+        check_in_time = datetime.strptime(f"{check_in_hour}:{check_in_minute} {check_in_period}", "%I:%M %p").time()
+        check_out_time = datetime.strptime(f"{check_out_hour}:{check_out_minute} {check_out_period}", "%I:%M %p").time()
+
+        # Create and save the booking
+        booking = form.save(commit=False)
+        booking.user = self.request.user  # Associate with the logged-in user
+        booking.room = room
+        booking.check_in_date = check_in_date
+        booking.check_out_date = check_out_date
+        booking.check_in_time = check_in_time
+        booking.check_out_time = check_out_time
+        booking.guests = guests
+        booking.rooms = rooms
+        booking.total_cost = total_cost
+        booking.save()
+
+        return redirect('home')  # Redirect to a booking confirmation page (change URL name accordingly)
+
+    def form_invalid(self, form):
+        # Handle invalid form submission (if needed)
+        return super().form_invalid(form)
