@@ -32,7 +32,9 @@ class BookingRoom(models.Model):
                 base_cost = self.rooms * self.room.hrs_rate * duration_in_hours
             else:
                 # Calculate daily cost
-                num_days = (self.check_out_date - self.check_in_date).days
+                check_in_date = datetime.strptime(self.check_in_date, "%Y-%m-%d")  # Format based on your date format
+                check_out_date = datetime.strptime(self.check_out_date, "%Y-%m-%d")
+                num_days = (check_out_date - check_in_date).days
                 if num_days <= 0:
                     num_days = 1  # Minimum 1 day charge
                 base_cost = self.rooms * self.room.room_rate * num_days

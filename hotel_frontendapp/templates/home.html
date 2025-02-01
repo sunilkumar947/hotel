@@ -36,23 +36,46 @@
                         <button type="submit" class="btn btn-dark w-100">Filter</button>
                     </form>
 
-                    {% if rooms %}
+                    
+
+                    <form method="post" action="{% url 'confirm_booking' %}" >
+                        {% csrf_token %}
+                        {% if rooms %}
                     <div class="container mt-4">
                         <div class="d-flex flex-wrap gap-3">
                             {% for room in rooms %}
                             <div class="card flex-row room-card" data-rate="{{ room.room_rate }}" data-cleaning="{{ room.clining_fees }}" data-service="{{ room.room_service_fee }}" data-tax="{{ room.gst }}">
                                 <img src="{{ room.room_img.url }}" class="card-img-left" style="width: 200px; object-fit: cover;" alt="Room Image">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ room.room_type.name }}</h5>
+                                    <h5 class="card-title" name="room_type">{{ room.room_type }}</h5>
+                                    
                                     <ul class="list-group list-group-flush">
-                                        <li class="list-group-item"><strong>Property Type:</strong> {{ room.property_type }}</li>
-                                        <li class="list-group-item"><strong>Rate:</strong> ₹<span class="room-rate">{{ room.room_rate }}</span></li>
-                                        <li class="list-group-item"><strong>group_rate:</strong> ₹<span class="room-rate">{{ room.group_rate }}</span></li>
-
-                                        <li class="list-group-item"><strong>Cleaning Fee:</strong> ₹<span class="cleaning-fee">{{ room.clining_fees }}</span></li>
-                                        <li class="list-group-item"><strong>Room Service Fee:</strong> ₹<span class="service-fee">{{ room.room_service_fee }}</span></li>
-                                        <li class="list-group-item"><strong>Taxes:</strong> <span class="gst">{{ room.gst }}</span>%</li>
+                                        <li class="list-group-item">
+                                            <label for="property_type"><strong>Property Type:</strong></label>
+                                            <input type="text" name="property_type" id="property_type" class="form-control" value="{{ room.property_type }}" readonly>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <label for="room_rate"><strong>Rate:</strong></label>
+                                            <input type="number" name="room_rate" id="room_rate" class="form-control" value="{{ room.room_rate }}" readonly>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <label for="group_rate"><strong>Group Rate:</strong></label>
+                                            <input type="number" name="group_rate" id="group_rate" class="form-control" value="{{ room.group_rate }}" readonly>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <label for="clining_fees"><strong>Cleaning Fee:</strong></label>
+                                            <input type="number" name="clining_fees" id="clining_fees" class="form-control" value="{{ room.clining_fees }}" readonly>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <label for="room_service_fee"><strong>Room Service Fee:</strong></label>
+                                            <input type="number" name="room_service_fee" id="room_service_fee" class="form-control" value="{{ room.room_service_fee }}" readonly>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <label for="gst"><strong>Taxes:</strong></label>
+                                            <input type="number" name="gst" id="gst" class="form-control" value="{{ room.gst }}" readonly>
+                                        </li>
                                     </ul>
+                                    
                                 </div>
                             </div>
                             {% endfor %}
@@ -63,11 +86,6 @@
                         No rooms available for the selected room type.
                     </div>
                     {% endif %}
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="room" id="selected-room-id">
-
                         <label>Check-in Date:</label>
                         <input type="date" name="check_in_date" class="form-control" required>
 
@@ -75,24 +93,10 @@
                         <input type="date" name="check_out_date" class="form-control" required>
 
                         <label>Check-in Time:</label>
-                        <div class="d-flex">
-                            <input type="number" name="check_in_hour" class="form-control" min="1" max="12" required placeholder="Hour (1-12)">
-                            <input type="number" name="check_in_minute" class="form-control" min="0" max="59" required placeholder="Minute (00-59)">
-                            <select name="check_in_period" class="form-select" required>
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
-                        </div>
+                        <input type="time" name="check_in_time" required>
 
                         <label>Check-out Time:</label>
-                        <div class="d-flex">
-                            <input type="number" name="check_out_hour" class="form-control" min="1" max="12" required placeholder="Hour (1-12)">
-                            <input type="number" name="check_out_minute" class="form-control" min="0" max="59" required placeholder="Minute (00-59)">
-                            <select name="check_out_period" class="form-select" required>
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
-                        </div>
+                        <input type="time" name="check_out_time" required>
 
 
                         <label>Number of Guests:</label>
@@ -114,7 +118,7 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
     let selectedRoom = document.querySelector(".room-card"); // Default selected room
     let numRoomsInput = document.getElementById("num-rooms");
     let numGuestsInput = document.querySelector("input[name='guests']");
@@ -122,7 +126,7 @@
     let checkOutDateInput = document.querySelector("input[name='check_out_date']");
     let totalCostField = document.getElementById("total-cost");
     let confirmBookingBtn = document.getElementById("confirm-booking-btn");
-
+    let selectedRoomTypeInput = document.getElementById("roomname");
     // Function to calculate the total cost
     function calculateTotalCost() {
         if (!selectedRoom) return;
@@ -141,8 +145,12 @@
         let timeDifference = checkOutDate - checkInDate;
         let numNights = Math.max(1, timeDifference / (1000 * 60 * 60 * 24)); // Ensure at least 1 night
 
+        // Multiply cleaning fee and service fee by the number of rooms
+        let totalCleaningFee = cleaningFee * numRooms;
+        let totalServiceFee = serviceFee * numRooms;
+
         // Calculate base cost
-        let baseCost = (roomRate * numRooms * numNights) + cleaningFee + serviceFee;
+        let baseCost = (roomRate * numRooms * numNights) + totalCleaningFee + totalServiceFee;
 
         // Apply group rate if guests > 4
         if (numGuests > 4) {
@@ -181,7 +189,9 @@
     calculateTotalCost(); // Initial calculation
 });
 
+
     </script>
+    
     
 </body>
 </html>
