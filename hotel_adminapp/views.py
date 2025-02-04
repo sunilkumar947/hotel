@@ -9,7 +9,12 @@ from django.views.generic import TemplateView
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import FormView
 from .forms import RegistrationForm, LoginForm,ProfileSetupForm
-from .models import User,ProfileSetup, Rooms
+from .models import  Rooms
+from django.contrib import messages  
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control
+
 
 
 class RegisterView(FormView):
@@ -18,12 +23,12 @@ class RegisterView(FormView):
     success_url = reverse_lazy("login")  # Redirect to login after successful registration
 
     def form_valid(self, form):
+        
         form.save()  # Save the user to the database
         return super().form_valid(form)
 
-class LoginView(View):
+class Loginview(View):
     template_name = "login.html"
-
     def get(self, request, *args, **kwargs):
         form = LoginForm()
         return render(request, self.template_name, {"form": form})
@@ -36,7 +41,8 @@ class LoginView(View):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
-                update_last_login(None, user)  # Update the last login timestamp
+                messages.success(request,'succesfully logedin as '+username)
+
                 return redirect('home')
             else :
                 messages.success(request,'invalid username or password')
@@ -45,8 +51,12 @@ class LoginView(View):
 
 class Logoutview(View):
     def post(self, request):
-        logout(request)  # Log the user out
-        return redirect('login') 
+        request.session.flush()  # Destroy the session completely
+        logout(request)
+        response = redirect('login')
+        
+        messages.success(request, 'You have been logged out successfully.')
+        return response
 
     
 class DashboardView(LoginRequiredMixin,TemplateView):

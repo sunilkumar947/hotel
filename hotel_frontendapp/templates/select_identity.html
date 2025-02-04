@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Identity</title>
+</head>
+<body>
+    <h2>Select Identity Type</h2>
+    <form method="POST" action="{% url 'select_identity' %}">
+        {% csrf_token %}
+        <label>
+            <input type="radio" name="identity_type" value="Aadhar Card" required> Aadhar Card
+        </label><br>
+        <label>
+            <input type="radio" name="identity_type" value="Driving License" required> Driving License
+        </label><br>
+        <label>
+            <input type="radio" name="identity_type" value="Passport" required> Passport
+        </label><br>
+        <button type="submit">Next</button>
+    </form>
+</body>
+</html>

@@ -8,6 +8,26 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
+    {% if messages %}
+    <div id="message-container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>          
+    <script>
+        setTimeout(function() {
+            let alert = document.querySelector(".alert");
+            if (alert) {
+                alert.classList.remove("show");
+                alert.classList.add("fade");
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 3000);
+    </script>
+    {% endif %}  
     <div class="container mt-4">
         <!-- Logout Button -->
         <div class="d-flex justify-content-end">
@@ -16,7 +36,6 @@
                 <button type="submit" class="btn btn-danger">Logout</button>
             </form>
         </div>
-
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card p-4">
@@ -28,64 +47,74 @@
                             <select name="room_type" id="room_type" class="form-select" required>
                                 <option value="">All</option>
                                 <option value="Premium" {% if request.GET.room_type == 'Premium' %}selected{% endif %}>Premium</option>
-                                <option value="Executive" {% if request.GET.room_type == 'Executive' %}selected{% endif %}>Executive</option>
+                                <option value="Executive" {% if request.GET.room_type == 'Executive' or not request.GET.room_type %}selected{% endif %}>Executive</option>
                                 <option value="Luxury" {% if request.GET.room_type == 'Luxury' %}selected{% endif %}>Luxury</option>
                             </select>
                         </div>
 
                         <button type="submit" class="btn btn-dark w-100">Filter</button>
-                    </form>
-
-                    
-
+                    </form>         
                     <form method="post" action="{% url 'confirm_booking' %}" >
                         {% csrf_token %}
                         {% if rooms %}
-                    <div class="container mt-4">
-                        <div class="d-flex flex-wrap gap-3">
-                            {% for room in rooms %}
-                            <div class="card flex-row room-card" data-rate="{{ room.room_rate }}" data-cleaning="{{ room.clining_fees }}" data-service="{{ room.room_service_fee }}" data-tax="{{ room.gst }}">
-                                <img src="{{ room.room_img.url }}" class="card-img-left" style="width: 200px; object-fit: cover;" alt="Room Image">
-                                <div class="card-body">
-                                    <h5 class="card-title" name="room_type">{{ room.room_type }}</h5>
-                                    
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item">
-                                            <label for="property_type"><strong>Property Type:</strong></label>
-                                            <input type="text" name="property_type" id="property_type" class="form-control" value="{{ room.property_type }}" readonly>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <label for="room_rate"><strong>Rate:</strong></label>
-                                            <input type="number" name="room_rate" id="room_rate" class="form-control" value="{{ room.room_rate }}" readonly>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <label for="group_rate"><strong>Group Rate:</strong></label>
-                                            <input type="number" name="group_rate" id="group_rate" class="form-control" value="{{ room.group_rate }}" readonly>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <label for="clining_fees"><strong>Cleaning Fee:</strong></label>
-                                            <input type="number" name="clining_fees" id="clining_fees" class="form-control" value="{{ room.clining_fees }}" readonly>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <label for="room_service_fee"><strong>Room Service Fee:</strong></label>
-                                            <input type="number" name="room_service_fee" id="room_service_fee" class="form-control" value="{{ room.room_service_fee }}" readonly>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <label for="gst"><strong>Taxes:</strong></label>
-                                            <input type="number" name="gst" id="gst" class="form-control" value="{{ room.gst }}" readonly>
-                                        </li>
-                                    </ul>
-                                    
+                        <div class="container mt-4">
+                            <div class="d-flex flex-wrap gap-3">
+                                {% for room in rooms %}
+                                <div class="card flex-row room-card" data-rate="{{ room.room_rate }}" data-cleaning="{{ room.clining_fees }}" data-service="{{ room.room_service_fee }}" data-tax="{{ room.gst }}">
+                                    <img src="{{ room.room_img.url }}" class="card-img-left" style="width: 200px; object-fit: cover;" alt="Room Image">
+                                    <div class="card-body">
+                                        <h5 class="card-title" name="room_type">{{ room.room_type }}</h5>
+                                        
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item">
+                                                <label for="property_type"><strong>Property Type:</strong></label>
+                                                <input type="text" name="property_type" id="property_type" class="form-control" value="{{ room.property_type }}" readonly>
+                                            </li>
+                                            <li class="list-group-item">
+                                                <label for="room_rate"><strong>Rate:</strong></label>
+                                                <input type="number" name="room_rate" id="room_rate" class="form-control" value="{{ room.room_rate }}" readonly>
+                                            </li>
+                                            <li class="list-group-item">
+                                                <label for="group_rate"><strong>Group Rate:</strong></label>
+                                                <input type="number" name="group_rate" id="group_rate" class="form-control" value="{{ room.group_rate }}" readonly>
+                                            </li>
+                                            
+                                            <li class="list-group-item">
+                                                <label for="room_service_fee"><strong>Room Service Fee:</strong></label>
+                                                <input type="number" name="room_service_fee" id="room_service_fee" class="form-control" value="{{ room.room_service_fee }}" readonly>
+                                            </li>
+                                            <li class="list-group-item">
+                                                <label for="gst"><strong>Taxes:</strong></label>
+                                                <input type="number" name="gst" id="gst" class="form-control" value="{{ room.gst }}" readonly>
+                                            </li>
+                                        </ul>
+                                        
+                                    </div>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
                         </div>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-warning" role="alert">
-                        No rooms available for the selected room type.
-                    </div>
-                    {% endif %}
+                        {% else %}
+                        <div class="alert alert-warning" role="alert">
+                            No rooms available for the selected room type.
+                        </div>
+                        {% endif %}
+
+                        <h2>Available Discounts</h2>
+                        {% if discounts %}
+                            <ul>
+                                {% for discount in discounts %}
+                                    <label>No of rooms: </label>
+                                    <input type="number" name="noofroom" id="noofroom" class="form-control" value="{{ discount.book_room_dis }}" readonly>
+                                    <label>Discount: </label>
+                                    <input type="number" name="roomdiscount" id="roomdiscount" class="form-control" value="{{ discount.dis_percent }}"% readonly>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No discounts available at the moment.</p>
+                        {% endif %}
+ 
+
                         <label>Check-in Date:</label>
                         <input type="date" name="check_in_date" class="form-control" required>
 
@@ -105,7 +134,8 @@
                         <label>Number of Rooms:</label>
                         <input type="number" name="rooms" class="form-control" id="num-rooms" min="1" required>
 
-                    
+                        <label for="discount">Discount:</label>
+                        <input type="number" name="discount" id="discount" class="form-control" readonly>
 
                         <label>Total Cost:</label>
                         <input type="text" id="total-cost" class="form-control" readonly>
@@ -118,79 +148,120 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    let selectedRoom = document.querySelector(".room-card"); // Default selected room
-    let numRoomsInput = document.getElementById("num-rooms");
-    let numGuestsInput = document.querySelector("input[name='guests']");
-    let checkInDateInput = document.querySelector("input[name='check_in_date']");
-    let checkOutDateInput = document.querySelector("input[name='check_out_date']");
-    let totalCostField = document.getElementById("total-cost");
-    let confirmBookingBtn = document.getElementById("confirm-booking-btn");
-    let selectedRoomTypeInput = document.getElementById("roomname");
-    // Function to calculate the total cost
-    function calculateTotalCost() {
-        if (!selectedRoom) return;
+        document.addEventListener("DOMContentLoaded", function () {
+        let selectedRoom = document.querySelector(".room-card"); // Default selected room
+        let numRoomsInput = document.getElementById("num-rooms");
+        let numGuestsInput = document.querySelector("input[name='guests']");
+        let checkInDateInput = document.querySelector("input[name='check_in_date']");
+        let checkOutDateInput = document.querySelector("input[name='check_out_date']");
+        let totalCostField = document.getElementById("total-cost");
+        let confirmBookingBtn = document.getElementById("confirm-booking-btn");
+        let guestLimitMessage = document.createElement("div"); // Message for guest limit
+        let discountMessage = document.createElement("div"); // Message for discount
+        let discountField = document.getElementById("discount"); // Discount field
 
-        let roomRate = parseFloat(selectedRoom.dataset.rate);
-        let cleaningFee = parseFloat(selectedRoom.dataset.cleaning);
-        let serviceFee = parseFloat(selectedRoom.dataset.service);
-        let taxPercentage = parseFloat(selectedRoom.dataset.tax);
-        let groupRate = 500; // Additional charge if guests > 4
-        let numRooms = parseInt(numRoomsInput.value) || 1;
-        let numGuests = parseInt(numGuestsInput.value) || 1;
+        // Function to calculate the total cost
+        function calculateTotalCost() {
+            if (!selectedRoom) return;
 
-        // Calculate number of nights
-        let checkInDate = new Date(checkInDateInput.value);
-        let checkOutDate = new Date(checkOutDateInput.value);
-        let timeDifference = checkOutDate - checkInDate;
-        let numNights = Math.max(1, timeDifference / (1000 * 60 * 60 * 24)); // Ensure at least 1 night
+            let roomRate = parseFloat(selectedRoom.dataset.rate);
+            let serviceFee = parseFloat(selectedRoom.dataset.service);
+            let groupRate = parseFloat(selectedRoom.querySelector('#group_rate').value); // Dynamic group rate
+            let taxPercentage = parseFloat(selectedRoom.dataset.tax);
+            
+            let numRooms = parseInt(numRoomsInput.value) || 1;
+            let numGuests = parseInt(numGuestsInput.value) || 1;
+            
+            // Reset the guest limit message and discount message
+            guestLimitMessage.remove();
+            discountMessage.remove();
 
-        // Multiply cleaning fee and service fee by the number of rooms
-        let totalCleaningFee = cleaningFee * numRooms;
-        let totalServiceFee = serviceFee * numRooms;
+            // Stop the calculation if guests exceed 3
+            if (numGuests > 3) {
+                guestLimitMessage.classList.add("alert", "alert-warning");
+                guestLimitMessage.textContent = "The number of guests cannot exceed 3 per room.";
+                numGuestsInput.parentNode.appendChild(guestLimitMessage);
+                totalCostField.value = ""; // Clear the total cost
+                confirmBookingBtn.disabled = true; // Disable the booking button
+                return; // Stop further calculation if guests exceed 3
+            }
 
-        // Calculate base cost
-        let baseCost = (roomRate * numRooms * numNights) + totalCleaningFee + totalServiceFee;
+            // Calculate number of nights
+            let checkInDate = new Date(checkInDateInput.value);
+            let checkOutDate = new Date(checkOutDateInput.value);
+            let timeDifference = checkOutDate - checkInDate;
+            let numNights = Math.max(1, timeDifference / (1000 * 60 * 60 * 24)); // Ensure at least 1 night
 
-        // Apply group rate if guests > 4
-        if (numGuests > 4) {
-            baseCost += groupRate;
+            // Base cost for the room and service fee, multiplied by the number of rooms and nights
+            let baseCost = (roomRate + serviceFee) * numRooms * numNights;
+
+            // Additional charge for extra guests beyond 2 per room (using dynamic group rate)
+            if (numGuests > 2) {
+                let additionalGuests = numGuests - 2;
+                baseCost += additionalGuests * groupRate * numRooms; // Apply dynamic group rate for extra guests
+            }
+
+            // Apply tax
+            let taxAmount = (baseCost * taxPercentage) / 100;
+            let totalCost = baseCost + taxAmount;
+
+            // Reset discount field
+            discountField.value = ""; // Clear any previous discount value
+
+            // Check if there is a discount available
+            {% if discounts %}
+                {% for discount in discounts %}
+                    let discountRooms = {{ discount.book_room_dis }};
+                    let discountPercentage = {{ discount.dis_percent }};
+                    
+                    // If the user books the same number of rooms as the discount number
+                    if (numRooms === discountRooms) {
+                        let discountAmount = (totalCost * discountPercentage) / 100;
+                        totalCost -= discountAmount;
+
+                        // Display discount message
+                        discountMessage.classList.add("alert", "alert-success");
+                        discountMessage.textContent = "A discount of " + discountPercentage + "% has been applied for booking " + discountRooms + " rooms.";
+                        numRoomsInput.parentNode.appendChild(discountMessage);
+
+                        // Update the discount field with the discount percentage
+                        discountField.value = discountPercentage;
+                    }
+                {% endfor %}
+            {% endif %}
+
+            // Display total cost
+            totalCostField.value = "₹" + totalCost.toFixed(2);
+
+            // Enable or disable the button based on input fields
+            if (selectedRoom && checkInDateInput.value && checkOutDateInput.value && numGuests > 0 && numRooms > 0) {
+                confirmBookingBtn.disabled = false; // Enable button when all required fields are filled
+            } else {
+                confirmBookingBtn.disabled = true; // Disable button when fields are missing
+            }
         }
 
-        // Apply tax
-        let taxAmount = (baseCost * taxPercentage) / 100;
-        let totalCost = baseCost + taxAmount;
+        // Attach event listeners for real-time calculation
+        numRoomsInput.addEventListener("input", calculateTotalCost);
+        numGuestsInput.addEventListener("input", calculateTotalCost);
+        checkInDateInput.addEventListener("change", calculateTotalCost);
+        checkOutDateInput.addEventListener("change", calculateTotalCost);
 
-        // Display total cost
-        totalCostField.value = "₹" + totalCost.toFixed(2);
-
-        // Enable or disable the button based on input fields
-        if (selectedRoom && checkInDateInput.value && checkOutDateInput.value && numGuests > 0 && numRooms > 0) {
-            confirmBookingBtn.disabled = false; // Enable button when all required fields are filled
-        } else {
-            confirmBookingBtn.disabled = true; // Disable button when fields are missing
-        }
-    }
-
-    // Attach event listeners for real-time calculation
-    numRoomsInput.addEventListener("input", calculateTotalCost);
-    numGuestsInput.addEventListener("input", calculateTotalCost);
-    checkInDateInput.addEventListener("change", calculateTotalCost);
-    checkOutDateInput.addEventListener("change", calculateTotalCost);
-
-    // Room selection
-    document.querySelectorAll(".room-card").forEach(roomCard => {
-        roomCard.addEventListener("click", function () {
-            selectedRoom = this;
-            calculateTotalCost();
+        // Room selection
+        document.querySelectorAll(".room-card").forEach(roomCard => {
+            roomCard.addEventListener("click", function () {
+                selectedRoom = this;
+                calculateTotalCost();
+            });
         });
+
+        calculateTotalCost(); // Initial calculation
     });
 
-    calculateTotalCost(); // Initial calculation
-});
-
-
     </script>
+    
+  
+    
     
     
 </body>

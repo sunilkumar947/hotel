@@ -1,3 +1,4 @@
+{% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +15,6 @@
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Register</button>
             <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
-
         </form>
     </div>
 </body>

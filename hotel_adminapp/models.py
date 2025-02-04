@@ -62,8 +62,6 @@ class ProfileSetup(models.Model):
     
 
 class HotelRoomType(models.Model):
-    
-    
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     room_type = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,7 +69,13 @@ class HotelRoomType(models.Model):
     def __str__(self):
         return self.room_type.capitalize()
     
+
+class BookingDiscount(models.Model):
+    book_room_dis = models.IntegerField()  # The field for booking room ID or some identifier
+    dis_percent = models.IntegerField()   # The discount percentage
     
+    def __str__(self):
+        return str(self.book_room_dis)      
 
 class Rooms(models.Model):
     GST_CHOICES = [
@@ -84,7 +88,6 @@ class Rooms(models.Model):
     room_img = models.ImageField(upload_to='rooms')
     room_rate = models.BigIntegerField()
     group_rate = models.BigIntegerField()
-    clining_fees = models.BigIntegerField(null=True,default=0)
     room_service_fee = models.BigIntegerField(null=True,default=0)
     hrs_rate = models.FloatField()
     gst = models.IntegerField(choices=GST_CHOICES, default=12)  # GST field added

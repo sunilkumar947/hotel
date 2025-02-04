@@ -4,6 +4,8 @@ from django.db import models
 from datetime import datetime
 from hotel_adminapp.models import User,Rooms,HotelRoomType
 # Create your models here.
+
+
 class BookingRoom(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     room = models.ForeignKey(Rooms, on_delete=models.CASCADE)
@@ -50,3 +52,24 @@ class BookingRoom(models.Model):
 
     def __str__(self):
         return f"Booking by {self.user.username if self.user else 'Guest'} for {self.rooms} room(s), Total Cost: {self.total_cost}"
+    
+    
+# class KYCDetails(models.Model):
+#     IDENTITY_CHOICES = [
+#         ('Aadhar Card', 'Aadhar Card'),
+#         ('Driving License', 'Driving License'),
+#         ('Passport', 'Passport'),
+#     ]
+
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="kyc_details")
+#     identity_type = models.CharField(max_length=20, choices=IDENTITY_CHOICES)
+#     front_image = models.ImageField(upload_to="kyc/front_images/")
+#     back_image = models.ImageField(upload_to="kyc/back_images/")
+#     user_photo = models.ImageField(upload_to="kyc/user_photos/")
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     is_verified = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return f"{self.user.full_name} - {self.identity_type}"
+  

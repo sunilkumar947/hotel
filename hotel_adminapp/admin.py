@@ -1,5 +1,5 @@
 from django.contrib import admin
-from  .models  import ProfileSetup,Rooms,HotelRoomType,User
+from  .models  import ProfileSetup,Rooms,HotelRoomType,User,BookingDiscount
 
 
 
@@ -9,5 +9,5 @@ from  .models  import ProfileSetup,Rooms,HotelRoomType,User
 admin.site.register(ProfileSetup)
 admin.site.register(HotelRoomType)    
 admin.site.register(Rooms) 
-
+admin.site.register(BookingDiscount)
 admin.site.register(User)

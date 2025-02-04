@@ -63,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+
 ]
 
 ROOT_URLCONF = 'livingHotelBooking.urls'
@@ -174,3 +176,8 @@ SOCIALACCOUNT_PROVIDERS = {
 #     'https://47fa-2405-201-5c21-2023-e852-5522-c40e-49ef.ngrok-free.app',  # Your Ngrok URL
 #     'https://127.0.0.1',
 # ]
+SECURE_BROWSER_XSS_FILTER = True
+
+CACHE_CONTROL = 'no-cache, no-store, must-revalidate'
+PRAGMA = 'no-cache'
+EXPIRES = '0'

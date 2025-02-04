@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Front Side</title>
+</head>
+<body>
+    <h2>Upload or Capture Front Side of Identity</h2>
+    <form method="POST"  action="{% url 'upload_front' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="front_image" accept="image/*" required>
+        <button type="submit">Next</button>
+    </form>
+</body>
+</html>
